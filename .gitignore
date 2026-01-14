@@ -1,0 +1,18 @@
+# Visual Studio времеви файлове
+.vs/
+*.user
+*.suo
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+
+# Компилационни файлове
+*.exe
+*.obj
+*.o
+*.log
+*.dll
+*.pdb
+
+# Windows системни файлове
+Thumbs.db
