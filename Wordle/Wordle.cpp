@@ -231,34 +231,81 @@ void playWordle() {
         cout << "You lost! The word was: " << word << endl;
     }
 }
+void handleLogOut() {
+   
+     currentUserIndex = -1;
+     currentUsername[MAX_USERNAME_LEN] = '!';
+     currentGamesPlayed = -1;
+     currentGamesWon = -1;
+     currentIsAdmin = -1;
+     cout << "Logged out successfully.\n";
+}
 int main()
 {
     loadUsers();
-    //could also add isLoggedIn for readability
-    while (currentUserIndex == -1) {
-        cout << "Choose an option:" << endl << "1: Login of existing user" << endl << "2: SignUp" << endl << "3: Exit" <<endl;
-        int command;
-        cin >> command;
-        switch (command) {
-        case 1:
-            cout << "Login";
-            handleLogin();
-            break;
-        case 2:
-            cout << "SignUp";
-            handleSignUp();
-            break;
-        case 3:
-            cout << "Exit. Thanks for playing!";
-            return 0;
-            break;
-        default:
-            cout << "Please pick a number from the menu" <<endl;
+    while (true) {
+        //could also add isLoggedIn for readability
+        while (currentUserIndex == -1) {
+            cout << "Choose an option:" << endl << "1: Login of existing user" << endl << "2: SignUp" << endl << "3: Exit" << endl;
+            int command;
+            cin >> command;
+            switch (command) {
+            case 1:
+                cout << "Login";
+                handleLogin();
                 break;
+            case 2:
+                cout << "SignUp";
+                handleSignUp();
+                break;
+            case 3:
+                cout << "Exit. Thanks for playing!";
+                return 0;
+                break;
+            default:
+                cout << "Please pick a number from the menu" << endl;
+                break;
+            }
         }
+
+        while (currentUserIndex != -1) {
+            cout << "\nLogged as: " << currentUsername << endl;
+
+            cout << "1: Start game\n";
+            cout << "2: Show leaderboard\n";
+            cout << "3: Logout\n";
+
+            if (currentIsAdmin) {
+                cout << "4: Add word\n";
+            }
+
+            int command;
+            cin >> command;
+
+            if (command == 1) {
+                cout << "Lets begin the game Mr. " << currentUsername << "!";
+                playWordle();
+            }
+            else if (command == 2) {
+                //leaderboard
+            }
+            else if (command == 3) {
+                handleLogOut();
+                currentUserIndex = -1;
+            }
+            else if (currentIsAdmin && command == 4) {
+                //addword
+            }
+            else if (currentIsAdmin && command == 5) {
+                //removeword
+            }
+            else {
+                cout << "Invalid option.\n";
+            }
+        }
+
+        
     }
-    cout << "Lets begin the game Mr. " << currentUsername << "!";
-    playWordle();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
