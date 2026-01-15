@@ -44,6 +44,7 @@ int wordCount = 0;
 
 
 void loadUsers() {
+    usersCount = 0;
     ifstream usersFile("users.txt");
     if (!usersFile.is_open()) {
         // file may not exist on first opening
@@ -78,6 +79,7 @@ void loadWords() {
 }
 
 void pickRandomWord(char selectedWord[]) {
+    //TODO: I dont know if i am allowed to use c.time for true random and i am too lazy to ask
     srand(67);
     int index = rand() % wordCount;
     strcpy_s(selectedWord, WORD_LEN + 1, words[index]);
@@ -194,6 +196,37 @@ void printResult(const char guess[], const char word[]) {
     cout << endl;
 }
 
+void saveUsers() {
+    ofstream file("users.txt");
+
+    //TODO: Find how to save user without wiping the whole fucking file
+    if (!file.is_open()) {
+        cout << "Error opening users.txt for writing\n";
+        return;
+    }
+
+    for (int i = 0; i < usersCount; i++) {
+        file << usernames[i] << " "
+            << passwords[i] << " "
+            << gamesPlayed[i] << " "
+            << gamesWon[i] << " "
+            << isAdmin[i] << endl;
+    }
+
+    file.close();
+}
+
+void updateUser(bool wonGame) {
+    if (currentUserIndex == -1) {
+        return;
+    }
+
+    gamesPlayed[currentUserIndex]++;
+
+    if (wonGame) {
+        gamesWon[currentUserIndex]++;
+    }
+}
 
 void playWordle() {
     loadWords();
@@ -230,6 +263,8 @@ void playWordle() {
     if (!won) {
         cout << "You lost! The word was: " << word << endl;
     }
+    updateUser(won);
+    saveUsers();
 }
 void handleLogOut() {
    
@@ -238,7 +273,104 @@ void handleLogOut() {
      currentGamesPlayed = -1;
      currentGamesWon = -1;
      currentIsAdmin = -1;
-     cout << "Logged out successfully.\n";
+     cout << "Logged out successfully.\n" <<endl;
+}
+bool isWordInList(const char word[]) {
+    loadWords();
+    for (int i = 0; i < wordCount; i++) {
+        if (strcmp(words[i], word) == 0) {
+            return true;
+        }
+    }
+    return false;
+
+}
+void addWord() {
+    char newWord[WORD_LEN + 1];
+
+    cout << "Enter new word: ";
+    cin >> newWord;
+    
+    if (isValidWord(newWord) && isWordInList(newWord))
+    {
+        ofstream file("words.txt", ios::app);
+        file << newWord << endl;
+        file.close();
+
+        cout << "Word added successfully.\n";
+    }
+    else
+    {
+        cout << "Invalid word. Use " << WORD_LEN << " lowercase letters." << endl;
+    }
+}
+void sortByGamesPlayed(int order[]) {
+    for (int i = 0; i < usersCount - 1; i++) {
+        for (int j = 0; j < usersCount - i - 1; j++) {
+            if (gamesPlayed[order[j]] < gamesPlayed[order[j + 1]]) {
+                int temp = order[j];
+                order[j] = order[j + 1];
+                order[j + 1] = temp;
+            }
+        }
+    }
+}
+double winRate(int wins, int played) {
+    if (played == 0) return 0.0;
+    return (double)wins / played;
+}
+
+void sortByWinRate(int order[]) {
+    for (int i = 0; i < usersCount - 1; i++) {
+        for (int j = 0; j < usersCount - i - 1; j++) {
+            if (winRate(gamesWon[order[j]], gamesPlayed[order[j]]) <
+                winRate(gamesWon[order[j + 1]], gamesPlayed[order[j + 1]])) {
+
+                int temp = order[j];
+                order[j] = order[j + 1];
+                order[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void printLeaderboard(int order[]) {
+    cout << "\n=== Leaderboard ===\n";
+    cout << "Username | Played | Won | Winrate\n";
+    for (int i = 0; i < usersCount; i++) {
+        int idx = order[i];
+
+        cout << usernames[idx] << " | "
+            << gamesPlayed[idx] << " | "
+            << gamesWon[idx] << " | "
+            << winRate(gamesWon[idx], gamesPlayed[idx])
+            << endl;
+    }
+}
+
+void showLeaderboard() {
+    loadUsers();
+    cout << "\nSort leaderboard by:\n" << "1: Games played\n" << "2: Winrate\n";
+    int choice;
+    cin >> choice;
+    int order[MAX_COUNT_USERS];
+    for (int i = 0; i < usersCount; i++) {
+        order[i] = i;
+    }
+    if (choice == 1) {
+        sortByGamesPlayed(order);
+    }
+    else if (choice == 2) {
+        sortByWinRate(order);
+    }
+    else {
+        cout << "Invalid choice.\n";
+        return;
+    }
+
+    printLeaderboard(order);
+
+
 }
 int main()
 {
@@ -246,7 +378,7 @@ int main()
     while (true) {
         //could also add isLoggedIn for readability
         while (currentUserIndex == -1) {
-            cout << "Choose an option:" << endl << "1: Login of existing user" << endl << "2: SignUp" << endl << "3: Exit" << endl;
+            cout << "Choose an option:" << endl << "1: Login of existing user" << endl << "2: SignUp" << endl << "3: Exit" << endl <<endl;
             int command;
             cin >> command;
             switch (command) {
@@ -287,17 +419,14 @@ int main()
                 playWordle();
             }
             else if (command == 2) {
-                //leaderboard
+                showLeaderboard();
             }
             else if (command == 3) {
                 handleLogOut();
-                currentUserIndex = -1;
             }
             else if (currentIsAdmin && command == 4) {
-                //addword
-            }
-            else if (currentIsAdmin && command == 5) {
-                //removeword
+                // TODO: adding word longer than 5 letters pops up a vs error
+                addWord();
             }
             else {
                 cout << "Invalid option.\n";
