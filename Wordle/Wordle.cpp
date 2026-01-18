@@ -1,10 +1,77 @@
-// Wordle.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+/**
+*
+* Solution to course project # 9
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2025/2026
+*
+* @author Iliyan Georgiev Popov
+* @idnumber 8MI0600652
+* @compiler VC
+*
+* The wordle game 
+* https://github.com/notEven1day/pb-su-wordle-project.git
+*  
+*/
+
 
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
 using namespace std;
+
+/**
+ just so you know I can write the custom  
+    strlen
+    srtcpy_s
+    strcmp
+functions I just chose not to use them for the sake of maintainability 
+
+size_t strLen(const char* arr) {
+    size_t len = 0;
+    for (size_t i = 0; arr[i]!='\0'; i++)
+    {
+        len += 1;
+    }
+    return len;
+}
+
+size_t strLen2(const char* arr) {
+    size_t len = 0;
+    while (arr[len] != '\0')
+    {
+        len++;
+    }
+    return len;
+}
+
+void srtcpy_s(char* destination, size_t size, const char* source) {
+    if (!destination || !source || size == 0)
+        return;
+
+    size_t i;
+    for (i = 0; i < size - 1 && source[i] != '\0'; i++) {
+        destination[i] = source[i];
+    }
+
+    destination[i] = '\0';
+}
+
+bool strCmp(const char* arr1, const char* arr2) {
+    size_t i = 0;
+
+    while (arr1[i] != '\0' && arr2[i] != '\0') {
+        if (arr1[i] != arr2[i]) {
+            return false;
+        }
+        i++;
+    }
+    return arr1[i] == arr2[i];
+
+}
+
+*/
+
 
 //global consts so we avoid slower dynamic arrays
 
@@ -79,7 +146,7 @@ void loadWords() {
 }
 
 void pickRandomWord(char selectedWord[]) {
-    //TODO: I dont know if i am allowed to use c.time for true random and i am too lazy to ask
+    //TODO: I dont know if i am allowed to use c.time for true random and I am too lazy to ask
     srand(67);
     int index = rand() % wordCount;
     strcpy_s(selectedWord, WORD_LEN + 1, words[index]);
@@ -106,6 +173,7 @@ void handleSignUp() {
     char newUsername[MAX_USERNAME_LEN];
     char newPassword[MAX_PASS_LEN];
 
+    //TODO: Somehow validate
     cout << "Enter username (max " << MAX_USERNAME_LEN - 1 << " symbols): ";
     cin >> newUsername;
 
@@ -239,11 +307,13 @@ void playWordle() {
 
     int attempts = 1;
     bool won = false;
-
+    
     while (attempts <= MAX_ATTEMPTS) {
-        cout << "Attempt " << (attempts) << "/" << MAX_ATTEMPTS << ": ";
-        cin >> guess;
+        cout << "Attempt " << (attempts) << "/" << MAX_ATTEMPTS << ": " << endl;
 
+        cin >> guess;
+        
+        //TODO: Bug found here. Stack overflows?
         if (!isValidWord(guess)) {
             cout << "Invalid word. Use " << WORD_LEN << " lowercase letters." << endl;
             continue;
@@ -290,8 +360,21 @@ void addWord() {
 
     cout << "Enter new word: ";
     cin >> newWord;
+
+    if (!isValidWord(newWord)) {
+        cout << "Invalid word. Use " << WORD_LEN << " lowercase letters." << endl;
+    }
+    else if (isWordInList(newWord)) {
+        cout << "Word already added" << endl;
+    }
+    else {
+        ofstream file("words.txt", ios::app);
+        file << newWord << endl;
+        file.close();
+        cout << "Word added successfully.\n";
+    }
     
-    if (isValidWord(newWord) && isWordInList(newWord))
+   /* if (isValidWord(newWord) && isWordInList(newWord))
     {
         ofstream file("words.txt", ios::app);
         file << newWord << endl;
@@ -302,7 +385,7 @@ void addWord() {
     else
     {
         cout << "Invalid word. Use " << WORD_LEN << " lowercase letters." << endl;
-    }
+    }*/
 }
 void sortByGamesPlayed(int order[]) {
     for (int i = 0; i < usersCount - 1; i++) {
@@ -315,6 +398,7 @@ void sortByGamesPlayed(int order[]) {
         }
     }
 }
+
 double winRate(int wins, int played) {
     if (played == 0) return 0.0;
     return (double)wins / played;
